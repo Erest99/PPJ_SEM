@@ -1,48 +1,49 @@
-package com.example.semestralka.mesto;
+package com.example.semestralka.stat;
 
 
+import com.example.semestralka.mesto.Mesto;
+import com.example.semestralka.mesto.MestoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Arrays;
 
 
 @RestController
-@RequestMapping("api/v1/mesto")
-public class MestoController {
+@RequestMapping("api/v1/stat")
+public class StatController {
 
 
 
-    private final MestoService mestoService;
+    private final StatService statService;
 
     @Autowired
-    public MestoController(MestoService mestoService) {
-        this.mestoService = mestoService;
+    public StatController(StatService statService) {
+        this.statService = statService;
     }
 
 
     @GetMapping
-    public List<Mesto> getCities()
+    public List<Stat> getCountries()
     {
-        return mestoService.getCities();
+        return statService.getStates();
     }
 
     @PostMapping
-    public void registerNewCity(@RequestBody Mesto mesto)
+    public void registerNewState(@RequestBody Stat stat)
     {
-        mestoService.addNewMesto(mesto);
-    }
-    @DeleteMapping(path = "{mestoId}")
-    public void deleteMesto(@PathVariable("mestoId") Long mestoId)
-    {
-        mestoService.deleteMesto(mestoId);
+        statService.addNewState(stat);
     }
 
-    @PutMapping(path = "{mestoId}")
-    public void updateMesto(@PathVariable("mestoId") Long mestoId, @RequestParam(required = false) String name, @RequestParam(required = false)String state)
+    @DeleteMapping(path = "{tag}")
+    public void deleteStat(@PathVariable("tag") String tag)
     {
-        mestoService.updateMesto(mestoId,name,state);
+        statService.deleteStat(tag);
+    }
+
+    @PutMapping(path = "{tag}")
+    public void updateStat(@PathVariable("tag") String tag, @RequestParam(required = false) String name)
+    {
+        statService.updateStat(tag,name);
     }
 }

@@ -1,9 +1,12 @@
 package com.example.semestralka.mesto;
 
+import lombok.Data;
+
 import javax.persistence.*;
 
 @Entity  //pro hybernate
 @Table
+@Data
 public class Mesto {
     @Id
     @SequenceGenerator(
@@ -19,50 +22,12 @@ public class Mesto {
     private String name;
     private String state;
 
-    public Mesto() {
-    }
-
-    public Mesto(Long id, String name, String state) {
-        this.id = id;
-        this.name = name;
-        this.state = state;
-    }
-
     public Mesto(String name, String state) {
         this.name = name;
         this.state = state;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Mesto() {
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    @Override
-    public String toString() {
-        return "Mesto{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", state='" + state + '\'' +
-                '}';
     }
 }

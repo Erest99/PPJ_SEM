@@ -3,18 +3,25 @@ package com.example.semestralka.mesto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Arrays;
+
 
 @RestController
 @RequestMapping("api/v1/mesto")
 public class MestoController {
+
+
+
     private final MestoService mestoService;
 
     @Autowired
     public MestoController(MestoService mestoService) {
         this.mestoService = mestoService;
     }
+
 
     @GetMapping
     public List<Mesto> getCities()
@@ -27,6 +34,7 @@ public class MestoController {
     {
         mestoService.addNewMesto(mesto);
     }
+
     @DeleteMapping(path = "{mestoId}")
     public void deleteMesto(@PathVariable("mestoId") Long mestoId)
     {

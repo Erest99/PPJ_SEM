@@ -1,5 +1,7 @@
-package com.example.semestralka.mesto;
+package com.example.semestralka.stat;
 
+import com.example.semestralka.mesto.Mesto;
+import com.example.semestralka.mesto.MestoRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,26 +9,21 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class MestoConfig {
+public class StatConfig {
 
     @Bean
-    CommandLineRunner commandLineRunner(MestoRepository repository){
+    CommandLineRunner InsertCR(StatRepository repository){
         return args -> {
-            Mesto Praha =new Mesto(
-                    "Praha",
-                    "CeskaRepublika",
-                    2.0,
-                    2.0
-            );
-            Mesto Liberec = new Mesto(
-                    "Liberec",
-                    "CeskaRepublika",
-                    1.2,
-                    1.1
+            Stat CeskaRepublika =new Stat(
+
+                        "CZ",
+                        "CeskaRepublika",
+                        "Praha,Liberec,"
+
             );
 
             repository.saveAll(
-                    List.of(Praha,Liberec)
+                    List.of(CeskaRepublika)
             );
         };
     }

@@ -1,61 +1,62 @@
-package com.example.semestralka.mesto;
+package com.example.semestralka.pocasi;
 
 
+import com.example.semestralka.mesto.Mesto;
+import com.example.semestralka.mesto.MestoService;
+import org.bson.json.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 
 @RestController
-@RequestMapping("api/v1/mesto")
-public class MestoController {
+//@Controller
+@RequestMapping("api/v1/pocasi")
+public class PocasiController {
 
     @Autowired
     private RestTemplate restTemplate;
 
     private final MestoService mestoService;
+    private final PocasiService pocasiService;
 
     @Autowired
-    public MestoController(MestoService mestoService) {
+    public PocasiController(PocasiService pocasiService, MestoService mestoService) {
+        this.pocasiService = pocasiService;
         this.mestoService = mestoService;
     }
 
-    @GetMapping("/country")
-    public List<Object> getCountry()
+    @GetMapping("/current_{mesto}_{tag}")
+    public Pocasi showCurrentPocasiFor(@PathVariable("mesto") String mesto,@PathVariable("tag") String tag)
     {
-        String url = "http://api.openweathermap.org/data/2.5/weather?q=Prague,cz&APPID=95cb3d154ca2cae3b3327826b3bf1c0e";
-        Object[] objects = restTemplate.getForObject(url,Object[].class);
-
-        return Arrays.asList(objects);
+        return pocasiService.getPocasiInCity(mesto,tag);
     }
 
-
-
-
-
-    @GetMapping
-    public List<Mesto> getCities()
+    @GetMapping("/current")
+    public List<Pocasi> showCurrentPocasi()
     {
-        return mestoService.getCities();
+        return pocasiService.getCurrentPocasi();
+    }
+
+    @GetMapping("/avg_{interval}")
+    public List<Pocasi> showCurrentPocasi(@PathVariable Integer interval)
+    {
+        return pocasiService.getAVGofPocasi(interval);
     }
 
     @PostMapping
-    public void registerNewCity(@RequestBody Mesto mesto)
-    {
-        mestoService.addNewMesto(mesto);
-    }
-    @DeleteMapping(path = "{mestoId}")
-    public void deleteMesto(@PathVariable("mestoId") Long mestoId)
-    {
-        mestoService.deleteMesto(mestoId);
+    public void savePocasi(@RequestBody Pocasi pocasi) {
+
+
+        pocasiService.addNewPocasi(pocasi);
+
     }
 
-    @PutMapping(path = "{mestoId}")
-    public void updateMesto(@PathVariable("mestoId") Long mestoId, @RequestParam(required = false) String name, @RequestParam(required = false)String state)
-    {
-        mestoService.updateMesto(mestoId,name,state);
-    }
 }

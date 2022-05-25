@@ -1,96 +1,66 @@
-package com.example.semestralka.mesto;
+package com.example.semestralka.stat;
 
-import com.example.semestralka.stat.Stat;
-import com.example.semestralka.stat.StatRepository;
+import com.example.semestralka.mesto.Mesto;
+import com.example.semestralka.mesto.MestoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
-public class MestoService {
+public class StatService {
 
-    private final MestoRepository mestoRepository;
     private final StatRepository statRepository;
 
 
     @Autowired
-    public MestoService(MestoRepository mestoRepository, StatRepository statRepository) {
-        this.mestoRepository = mestoRepository;
+    public StatService( StatRepository statRepository) {
         this.statRepository = statRepository;
     }
 
 
-    public List<Mesto> getCities()
+    public List<Stat> getStates()
     {
-        return mestoRepository.findAll();
+        return statRepository.findAll();
     }
 
-    public List<String> getCityNames()
-    {
-        List <Mesto> ms = mestoRepository.findAll();
-        List<String> r  = new ArrayList<>();
-        for(Mesto m : ms)
-        {
-            r.add(m.getName());
 
-        }
-        return r;
-    }
-
-    public void addNewMesto(Mesto mesto) {
-        Optional<Mesto> mestoByNameAndState =  mestoRepository.findMestoByNameAndState(mesto.getName(), mesto.getState());
-        if(mestoByNameAndState.isPresent())
+    public void addNewState(Stat state) {
+        Optional<Stat> stat =  statRepository.findById(state.getTag());
+        if(stat.isPresent())
         {
-            throw new IllegalStateException("Město již existuje");
+            throw new IllegalStateException("Stát již existuje");
         }
-        List<Stat> ss = statRepository.findAll();
-        for(Stat s : ss)
-        {
-            if(s.getTag().equals(mesto.getState()))
-            {
-                mestoRepository.save(mesto);
-                break;
-            }
-
-        }
+        statRepository.save(state);
 
 
     }
 
-    public void deleteMesto(Long mestoId) {
-        mestoRepository.findById(mestoId);
-        boolean exists = mestoRepository.existsById(mestoId);
+    public void deleteStat(String tag) {
+        statRepository.findById(tag);
+        boolean exists = statRepository.existsById(tag);
         if(!exists)
         {
-            throw new IllegalStateException("mesto s id "+ mestoId + "neexistuje");
+            throw new IllegalStateException("stát s tagem "+ tag + "neexistuje");
         }
-        mestoRepository.deleteById(mestoId);
+        statRepository.deleteById(tag);
     }
 
     @Transactional
-    public void updateMesto(Long mestoId, String name, String state) {
+    public void updateStat(String tag, String name) {
 
-        Mesto mesto = mestoRepository.findById(mestoId).orElseThrow(() -> new IllegalStateException("mesto s id "+mestoId+" neexistuje"));
-        Optional<Mesto> mestoOptional = mestoRepository.findMestoByNameAndState(name,state);
-        if(mestoOptional.isPresent())
+        Stat stat = statRepository.findById(tag).orElseThrow(() -> new IllegalStateException("stát s tagem "+tag+" neexistuje"));
+        if(name != null&&name.length() > 0 && !Objects.equals(stat.getName(),name))
         {
-            throw new IllegalStateException("Město existuje");
+            stat.setName(name);
         }
-        if(name != null&&name.length() > 0 && !Objects.equals(mesto.getName(),name))
+        if(tag != null&&tag.length() > 0 && !Objects.equals(stat.getTag(),tag))
         {
-            mesto.setName(name);
-        }
-        if(state != null&&state.length() > 0 && !Objects.equals(mesto.getState(),state))
-        {
-            mesto.setState(state);
+            stat.setTag(tag);
         }
 
     }
