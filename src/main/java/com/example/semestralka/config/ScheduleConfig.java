@@ -4,10 +4,13 @@ import com.example.semestralka.mesto.Mesto;
 import com.example.semestralka.mesto.MestoService;
 import com.example.semestralka.pocasi.Pocasi;
 import com.example.semestralka.pocasi.PocasiService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+@Profile("normal")
 @Configuration
 @EnableScheduling
 
@@ -37,11 +41,19 @@ public class ScheduleConfig implements SchedulingConfigurer {
     @Value("${expiration.rate}")
     private int exprate;
 
+    @Value("${api.code.part1}")
+    private String code1;
+
+    @Value("${api.code.part2}")
+    private String code2;
+
     @Autowired
     private RestTemplate restTemplate;
 
     private final PocasiService pocasiService;
     private final MestoService mestoService;
+
+    Logger logger = LoggerFactory.getLogger(ScheduleConfig.class);
 
     @Autowired
     public ScheduleConfig(PocasiService pocasiService,MestoService mestoService) {
@@ -54,7 +66,7 @@ public class ScheduleConfig implements SchedulingConfigurer {
         taskRegistrar.addTriggerTask(new Runnable() {
             @Override
             public void run() {
-                System.out.println("Taking new data");
+                logger.info("Taking new data");
                 String mesto;
                 String stat;
                 String url;
@@ -65,7 +77,7 @@ public class ScheduleConfig implements SchedulingConfigurer {
                     stat = m.getState();
 
 
-                    url = "http://api.openweathermap.org/data/2.5/weather?q="+mesto+","+stat+"&APPID=95cb3d154ca2cae3b3327826b3bf1c0e";
+                    url = code1+mesto+","+stat+code2;
                     Pocasi pocasi = restTemplate.getForObject(url,Pocasi.class);
                     pocasiService.addNewPocasi(pocasi);
 

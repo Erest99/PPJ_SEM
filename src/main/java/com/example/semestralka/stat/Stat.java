@@ -12,7 +12,7 @@ public class Stat{
 
 
     @Id
-    @Column(name="tag",updatable = false, unique = true,columnDefinition = "varchar (5)")
+    @Column(name="tag",updatable = true, unique = true,columnDefinition = "varchar (5)")
     private String tag;
     private String name;
 
@@ -20,7 +20,7 @@ public class Stat{
 
     }
 
-    public Stat(String tag, String name, String mesta) {
+    public Stat(String tag, String name) {
         this.tag = tag;
         this.name = name;
     }

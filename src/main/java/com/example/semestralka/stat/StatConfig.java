@@ -17,8 +17,7 @@ public class StatConfig {
             Stat CeskaRepublika =new Stat(
 
                         "CZ",
-                        "CeskaRepublika",
-                        "Praha,Liberec,"
+                        "CeskaRepublika"
 
             );
 

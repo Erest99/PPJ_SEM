@@ -1,7 +1,10 @@
 package com.example.semestralka.stat;
 
+import com.example.semestralka.SemestralkaApplication;
 import com.example.semestralka.mesto.Mesto;
 import com.example.semestralka.mesto.MestoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,9 @@ import java.util.Optional;
 public class StatService {
 
     private final StatRepository statRepository;
+
+    Logger logger = LoggerFactory.getLogger(StatService.class);
+
 
 
     @Autowired
@@ -33,7 +39,7 @@ public class StatService {
         Optional<Stat> stat =  statRepository.findById(state.getTag());
         if(stat.isPresent())
         {
-            throw new IllegalStateException("Stát již existuje");
+            logger.error("přidání státu: stát již existuje");
         }
         statRepository.save(state);
 
@@ -45,23 +51,19 @@ public class StatService {
         boolean exists = statRepository.existsById(tag);
         if(!exists)
         {
-            throw new IllegalStateException("stát s tagem "+ tag + "neexistuje");
+            logger.error("mazání státu: stát s id: "+ tag+ " neexistuje");
         }
         statRepository.deleteById(tag);
     }
 
     @Transactional
-    public void updateStat(String tag, String name) {
+    public void updateStat(String tag, String name  ) {
 
-        Stat stat = statRepository.findById(tag).orElseThrow(() -> new IllegalStateException("stát s tagem "+tag+" neexistuje"));
+        Stat stat = statRepository.findById(tag).orElseThrow(() -> new IllegalStateException("aktualizace státu: stát s tagem "+tag+" neexistuje"));
         if(name != null&&name.length() > 0 && !Objects.equals(stat.getName(),name))
         {
             stat.setName(name);
-        }
-        if(tag != null&&tag.length() > 0 && !Objects.equals(stat.getTag(),tag))
-        {
-            stat.setTag(tag);
-        }
+        }else logger.warn("aktualizace státu: neplatný název "+ name);
 
     }
 }

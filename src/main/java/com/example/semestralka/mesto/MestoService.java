@@ -1,7 +1,10 @@
 package com.example.semestralka.mesto;
 
+import com.example.semestralka.SemestralkaApplication;
 import com.example.semestralka.stat.Stat;
 import com.example.semestralka.stat.StatRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,9 @@ public class MestoService {
 
     private final MestoRepository mestoRepository;
     private final StatRepository statRepository;
+
+    Logger logger = LoggerFactory.getLogger(MestoService.class);
+
 
 
     @Autowired
@@ -55,9 +61,10 @@ public class MestoService {
 
     public void addNewMesto(Mesto mesto) {
         Optional<Mesto> mestoByNameAndState =  mestoRepository.findMestoByNameAndState(mesto.getName(), mesto.getState());
+        boolean help =false;
         if(mestoByNameAndState.isPresent())
         {
-            throw new IllegalStateException("Město již existuje");
+            logger.error("Vkládání města: Město již existuje");
         }
         List<Stat> ss = statRepository.findAll();
         for(Stat s : ss)
@@ -65,10 +72,12 @@ public class MestoService {
             if(s.getTag().equals(mesto.getState()))
             {
                 mestoRepository.save(mesto);
+                help = true;
                 break;
             }
 
         }
+        if(!help)logger.error("vkládání města: pokus o vložení města se státem, co není v databási");
 
 
     }
@@ -78,7 +87,7 @@ public class MestoService {
         boolean exists = mestoRepository.existsById(mestoId);
         if(!exists)
         {
-            throw new IllegalStateException("mesto s id "+ mestoId + "neexistuje");
+            logger.error("mazání města: město s id "+ mestoId+" neexistuje");
         }
         mestoRepository.deleteById(mestoId);
     }
@@ -90,16 +99,18 @@ public class MestoService {
         Optional<Mesto> mestoOptional = mestoRepository.findMestoByNameAndState(name,state);
         if(mestoOptional.isPresent())
         {
-            throw new IllegalStateException("Město existuje");
+            logger.error("aktualizace města: zadané město již existuje");
         }
         if(name != null&&name.length() > 0 && !Objects.equals(mesto.getName(),name))
         {
             mesto.setName(name);
         }
+        else logger.warn("aktualizace města: neplatné jméno ... "+ name);
         if(state != null&&state.length() > 0 && !Objects.equals(mesto.getState(),state))
         {
             mesto.setState(state);
         }
+        else logger.warn("aktualizace města: neplatný stát ... "+ state);
 
     }
 }

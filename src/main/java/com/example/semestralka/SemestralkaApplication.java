@@ -1,6 +1,8 @@
 package com.example.semestralka;
 
 import com.example.semestralka.mesto.Mesto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -17,8 +19,10 @@ import java.util.List;
 public class SemestralkaApplication {
 
 
+
     public static void main(String[] args) {
         SpringApplication.run(SemestralkaApplication.class, args);
+
         //LocalDateTime l = LocalDateTime.now();
     }
 

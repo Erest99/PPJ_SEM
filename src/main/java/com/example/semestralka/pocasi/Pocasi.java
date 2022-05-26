@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -14,11 +15,15 @@ import java.util.List;
 @JsonIgnoreProperties
 @Document
 @Data
+//TODO OPRAVIT AUTOINKREMENT
 public class Pocasi {
+//    @Transient
+//    public static final String SEQUENCE_NAME = "pocasi_sequence";
+
     @Id
-//    @Column(name = "_id", nullable = false)
-//    private Long id;
-    @Field("city")
+    @GeneratedValue
+    private String id;
+    @Indexed
     private String name;
     @Field("Time")
     private LocalDateTime time;

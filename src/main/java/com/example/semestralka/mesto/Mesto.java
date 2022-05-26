@@ -30,4 +30,10 @@ public class Mesto {
     public Mesto() {
 
     }
+
+    public Mesto(Long id, String name, String state) {
+        this.id = id;
+        this.name = name;
+        this.state = state;
+    }
 }
