@@ -2,6 +2,7 @@ package com.example.semestralka.config;
 
 import com.example.semestralka.mesto.Mesto;
 import com.example.semestralka.mesto.MestoService;
+import com.example.semestralka.pocasi.MyJson;
 import com.example.semestralka.pocasi.Pocasi;
 import com.example.semestralka.pocasi.PocasiService;
 import org.slf4j.Logger;
@@ -78,7 +79,8 @@ public class ScheduleConfig implements SchedulingConfigurer {
 
 
                     url = code1+mesto+","+stat+code2;
-                    Pocasi pocasi = restTemplate.getForObject(url,Pocasi.class);
+                    MyJson myJson = restTemplate.getForObject(url,MyJson.class);
+                    Pocasi pocasi = new Pocasi(myJson.getName(),myJson.getTime(),myJson.getMain().getTemp(),myJson.getMain().getPressure(),myJson.getSys().getCountry());
                     pocasiService.addNewPocasi(pocasi);
 
                 }

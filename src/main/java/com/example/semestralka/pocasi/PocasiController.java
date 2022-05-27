@@ -93,8 +93,8 @@ public class PocasiController {
 
     @Profile("normal")
     @PutMapping(path = "/upd")
-    public void updatePocasi(@RequestBody Pocasi pocasi)
+    public void updatePocasi(@RequestBody Pocasi pocasi, @RequestParam Double temp)
     {
-        pocasiService.updatePocasi(pocasi);
+        pocasiService.updatePocasi(pocasi,temp);
     }
 }

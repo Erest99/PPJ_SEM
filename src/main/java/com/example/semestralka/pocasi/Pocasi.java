@@ -15,34 +15,37 @@ import java.util.List;
 @JsonIgnoreProperties
 @Document
 @Data
-//TODO OPRAVIT AUTOINKREMENT
+@AllArgsConstructor
 public class Pocasi {
 //    @Transient
 //    public static final String SEQUENCE_NAME = "pocasi_sequence";
 
     @Id
+    @org.springframework.data.annotation.Id
     @GeneratedValue
-    private String id;
+    @Field("_id")
+    private String myid;
     @Indexed
     private String name;
     @Field("Time")
     private LocalDateTime time;
-    //private List<Main> main;
-    @Field("weather")
-    private Main main;
+    @Field("Temperature")
+    private Double temp;
+    @Field("Preassure")
+    private Integer pres;
     @Field("state")
-    private Sys sys;
+    private String state;
 
 
     public Pocasi(){
 
     }
 
-    public Pocasi( String name, Main main, Sys sys, LocalDateTime time) {
+    public Pocasi(String name, LocalDateTime time, Double temp, Integer pres, String state) {
         this.name = name;
-        this.main = main;
-        this.sys = sys;
         this.time = time;
+        this.temp = temp;
+        this.pres = pres;
+        this.state = state;
     }
-
 }

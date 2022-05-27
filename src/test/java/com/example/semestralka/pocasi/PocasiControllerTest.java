@@ -7,7 +7,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +22,7 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 class PocasiControllerTest {
@@ -39,72 +46,81 @@ class PocasiControllerTest {
         Mesto mesto = new Mesto("Chomutov","CZ");
         helper2.save(mesto);
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",new Main(290.0,1000),new Sys("CZ"),ld);
+        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
         helper.save(p);
-        List<Pocasi> ps =  helper.findAll();
+        Pocasi t =  helper.findAll().get(0);
         Pocasi pocasi =  underTest.showCurrentPocasiFor(mesto.getName(), mesto.getState());
-        assertThat(pocasi.getName()).isEqualTo(ps.get(0).getName());
-        assertThat(pocasi.getMain().getTemp()).isEqualTo(ps.get(0).getMain().getTemp());
+        assertThat(pocasi).isEqualTo(t);
     }
 
     @Test
     void showCurrentPocasi() {
-        helper2.save(new Mesto("Chomutov","CZ"));
+        Mesto mesto = new Mesto("Chomutov","CZ");
+        helper2.save(mesto);
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",new Main(290.0,1000),new Sys("CZ"),ld);
+        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
         helper.save(p);
-        List<Pocasi> ps =  helper.findAll();
+        List<Pocasi> t =  helper.findAll();
         List<Pocasi> pocasi =  underTest.showCurrentPocasi();
-        assertThat(pocasi.get(0).getName()).isEqualTo(ps.get(0).getName());
-        assertThat(pocasi.get(0).getMain().getTemp()).isEqualTo(ps.get(0).getMain().getTemp());
+        assertThat(pocasi).isEqualTo(t);
     }
 
     @Test
     void showAvgPocasi() {
-        helper2.save(new Mesto("Chomutov","CZ"));
+        Mesto mesto = new Mesto("Chomutov","CZ");
+        helper2.save(mesto);
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",new Main(290.0,1000),new Sys("CZ"),ld);
+        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
         helper.save(p);
-        List<Pocasi> ps =  helper.findAll();
+        p = new Pocasi("Chomutov",ld,292.0,1000,"CZ");
+        helper.save(p);
         List<Pocasi> pocasi =  underTest.showAvgPocasi(1);
-        assertThat(pocasi.get(0).getName()).isEqualTo(ps.get(0).getName());
-        assertThat(pocasi.get(0).getMain().getTemp()).isEqualTo(ps.get(0).getMain().getTemp());
+        assertThat(pocasi.get(0).getTemp()).isEqualTo(291.0);
     }
 
     @Test
     void savePocasi() {
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",new Main(290.0,1000),new Sys("CZ"),ld);
+        Pocasi p = new Pocasi("Chomutov",null,290.0,1000,"CZ");
         underTest.savePocasi(p);
-        assertThat(helper.findAll().size()).isEqualTo(1);
+        assertThat(helper.findAll().contains(new Pocasi("Chomutov",LocalDateTime.now(),290.0,1000,"CZ")));
     }
 
     @Test
-    void uploadCSV() {
+    void uploadCSV() throws Exception {
+        FileInputStream fis = new FileInputStream("src/test/java/com/example/semestralka/pocasi/testCSV.csv");
+        MockMultipartFile multipartFile = new MockMultipartFile("file", fis);
+        underTest.uploadCSV(multipartFile);
+        assertThat(helper.findAll().size()).isGreaterThan(0);
     }
 
-    @Test
-    void getAllPocasiInCsv() {
-    }
 
     @Test
     void insertPocasi() {
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",new Main(290.0,1000),new Sys("CZ"),ld);
-        underTest.savePocasi(p);
-        assertThat(helper.findAll().size()).isEqualTo(1);
+        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
+        underTest.insertPocasi(p);
+        assertThat(helper.findAll().contains(new Pocasi("Chomutov",ld,290.0,1000,"CZ")));
     }
 
     @Test
     void deletePocasi() {
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",new Main(290.0,1000),new Sys("CZ"),ld);
+        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
         helper.save(p);
-        underTest.deletePocasi(p);
+        Pocasi r = helper.findAll().get(0);
+        underTest.deletePocasi(r);
         assertThat(helper.findAll().size()).isEqualTo(0);
     }
 
     @Test
     void updatePocasi() {
+        LocalDateTime ld = LocalDateTime.now();
+        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
+        helper.save(p);
+        Pocasi r = helper.findAll().get(0);
+        underTest.updatePocasi(r,292.0);
+        r.setTemp(292.0);
+        assertThat(helper.findAll().get(0)).isEqualTo(r);
     }
 }

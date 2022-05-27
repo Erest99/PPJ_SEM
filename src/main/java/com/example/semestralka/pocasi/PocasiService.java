@@ -23,10 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -61,14 +58,12 @@ public class PocasiService {
     public List<Pocasi> getCurrentPocasi()
     {
         List<Mesto> ms = mestoRepository.findAll();
-        Sys sys;
         List<Pocasi> ps;
         List<Pocasi> r = new ArrayList<>();
         Pocasi np = null;
         for(Mesto m : ms)
         {
-            sys = new Sys(m.getState());
-            ps = pocasiRepository.findPocasiByNameAndSys(m.getName(),sys);
+            ps = pocasiRepository.findPocasiByNameAndState(m.getName(),m.getState());
             LocalDateTime nearest = LocalDateTime.now().minusDays(14);
 
             for(Pocasi p : ps)
@@ -88,7 +83,6 @@ public class PocasiService {
     public List<Pocasi> getAVGofPocasi(Integer interval)
     {
         List<Mesto> ms = mestoRepository.findAll();
-        Sys sys;
         List<Pocasi> ps;
         List<Pocasi> r = new ArrayList<>();
         double sumT = 0;
@@ -97,22 +91,22 @@ public class PocasiService {
         int ammountP = 0;
         for(Mesto m : ms)
         {
-            sys = new Sys(m.getState());
-            ps = pocasiRepository.findPocasiByNameAndSys(m.getName(),sys);
+            ps = pocasiRepository.findPocasiByNameAndState(m.getName(),m.getState());
             LocalDateTime nearest = LocalDateTime.now().minusDays(interval);
 
             for(Pocasi p : ps)
             {
                 if(p.getTime().isAfter(nearest))
                 {
-                    sumT = sumT + p.getMain().getTemp();
+                    sumT = sumT + p.getTemp();
                     ammountT++;
-                    sumP = sumP+p.getMain().getPressure();
+                    sumP = sumP+p.getPres();
                     ammountP++;
                 }
             }
-            Main main = new Main(sumT/ammountT,sumP/ammountP);
-            r.add(new Pocasi(m.getName(),main,new Sys(m.getState()),LocalDateTime.now()));
+            Double temp = sumT/ammountT;
+            Integer pres = sumP/ammountP;
+            r.add(new Pocasi(m.getName(),LocalDateTime.now(),temp,pres,m.getState()));
         }
 
         return r;
@@ -120,9 +114,8 @@ public class PocasiService {
 
     public Pocasi getPocasiInCity(String name, String tag)
     {
-        Sys sys = new Sys(tag);
-        List<Pocasi> ps = pocasiRepository.findPocasiByNameAndSys(name,sys);
-        if(ps.isEmpty())logger.error("get pocasi in city: lokalita nenalezena: "+ name+" "+ sys.getCountry());
+        List<Pocasi> ps = pocasiRepository.findPocasiByNameAndState(name,tag);
+        if(ps.isEmpty())logger.error("get pocasi in city: lokalita nenalezena: "+ name+" "+ tag);
         else {
             LocalDateTime nearest = LocalDateTime.now().minusDays(14);
             Pocasi np = null;
@@ -155,7 +148,7 @@ public class PocasiService {
 
 
     public void addPocasi(Pocasi pocasi) {
-        Pocasi poc =  pocasiRepository.findPocasiByNameAndTimeAndSys(pocasi.getName(), pocasi.getTime(),pocasi.getSys());
+        Pocasi poc =  pocasiRepository.findPocasiByNameAndStateAndTime(pocasi.getName(), pocasi.getState(), pocasi.getTime());
         if(poc == null)
         {
             pocasiRepository.save(pocasi);
@@ -164,32 +157,28 @@ public class PocasiService {
     }
 
     public void deletePocasi(Pocasi pocasi) {
-        Pocasi poc =  pocasiRepository.findPocasiByNameAndTimeAndSys(pocasi.getName(), pocasi.getTime(),pocasi.getSys());
-        if(poc == null)
+        //Pocasi poc =  pocasiRepository.findPocasiByNameAndTimeAndSys(pocasi.getName(), pocasi.getTime(),pocasi.getSys());
+        Optional<Pocasi> pocasiOptional = pocasiRepository.findPocasiByNameAndTime(pocasi.getName(),pocasi.getTime());
+        if(!pocasiOptional.isPresent())
         {
-            logger.error("mazání počasí: počasí "+ poc+" neexistuje");
+            logger.error("mazání počasí: počasí "+ pocasiOptional+" neexistuje");
         }
-        pocasiRepository.delete(pocasi);
+        Long num = pocasiRepository.deleteByNameAndTime(pocasi.getName(),pocasi.getTime());
+        pocasiRepository.findAll();
+
+
     }
 
     @Transactional
-    public void updatePocasi(Pocasi pocasi) {
+    public void updatePocasi(Pocasi pocasi,Double temp) {
 
-        Pocasi poc =  pocasiRepository.findPocasiByNameAndTimeAndSys(pocasi.getName(), pocasi.getTime(),pocasi.getSys());
-        if(poc == null)
-        {
-            if(pocasi.getName() != null&&pocasi.getName().length() > 0 && !Objects.equals(poc.getName(),pocasi.getName()))
-            {
-                poc.setName(pocasi.getName());
-            }
-            if(pocasi.getSys() != null&&pocasi.getSys().getCountry().length() > 0 && !Objects.equals(poc.getSys(),pocasi.getSys()))
-            {
-                poc.setSys(pocasi.getSys());
-            }
+        Pocasi p = pocasiRepository.findPocasiByNameAndStateAndTime(pocasi.getName(), pocasi.getState(), pocasi.getTime());
+        if(p!=null) {
+            Long num = pocasiRepository.deleteByNameAndTime(pocasi.getName(),pocasi.getTime());;
+            pocasi.setTemp(temp);
+            pocasiRepository.save(pocasi);
         }
-        else
-            logger.error("update počasí: počasí "+ poc+" neexistuje");
-
+        else logger.error("update počasí: neexistující záznam "+pocasi);
 
     }
     //TODO ošetřit správnost města + vytvořit nové město
@@ -210,10 +199,9 @@ public class PocasiService {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
                     LocalDateTime dateTime = LocalDateTime.parse(dt, formatter);
                     pocasi.setTime(dateTime);
-                    Main main = new Main(record.getDouble("teplota"),record.getInt("tlak"));
-                    pocasi.setMain(main);
-                    Sys sys = new Sys(record.getString("stat"));
-                    pocasi.setSys(sys);
+                    pocasi.setTemp(record.getDouble("teplota"));
+                    pocasi.setPres(record.getInt("tlak"));
+                    pocasi.setState(record.getString("stat"));
                     ps.add(pocasi);
                 }
         );
@@ -228,13 +216,14 @@ public class PocasiService {
             for (Pocasi pocasi : ps) {
                 csvPrinter.printRecord(pocasi.getName(),
                         pocasi.getTime(),
-                        pocasi.getMain().getTemp(),
-                        pocasi.getMain().getPressure(),
-                        pocasi.getSys().getCountry());
+                        pocasi.getTemp(),
+                        pocasi.getPres(),
+                        pocasi.getState());
             }
         } catch (IOException e) {
             logger.error("Chyba při zápisu .CSV", e);
         }
+
     }
 
     public class CustomComparator implements Comparator<Pocasi> {
