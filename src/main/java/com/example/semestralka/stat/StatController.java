@@ -46,7 +46,7 @@ public class StatController {
 
     @Profile("normal")
     @PutMapping(path = "{tag}")
-    public void updateStat(@PathVariable("tag") String tag, @RequestParam String name)
+    public void updateStat(@PathVariable("tag") String tag, @RequestParam(required = false) String name)
     {
         statService.updateStat(tag,name);
     }

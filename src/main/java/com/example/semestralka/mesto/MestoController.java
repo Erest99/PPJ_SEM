@@ -15,7 +15,6 @@ import java.util.Arrays;
 public class MestoController {
 
 
-    //TODO custom http response to empty search
     private final MestoService mestoService;
 
     @Autowired

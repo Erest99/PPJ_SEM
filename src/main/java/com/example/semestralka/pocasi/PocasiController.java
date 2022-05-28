@@ -6,10 +6,13 @@ import com.example.semestralka.mesto.MestoService;
 import org.bson.json.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +28,8 @@ import java.util.List;
 @RestController
 @RequestMapping("api/v1/pocasi")
 public class PocasiController {
+
+
 
 
     private final MestoService mestoService;
@@ -61,11 +66,18 @@ public class PocasiController {
         pocasiService.addNewPocasi(pocasi);
 
     }
-    //TODO Zkusit obejít bug, kdy controller anotovaný profilem se spouští v libovolném profilu
+
+
+//    @PostMapping("/upload")
+//    public void uploadCSV(@RequestParam("file")MultipartFile file) throws Exception {
+//        pocasiService.dataUpload(file);
+//    }
     @Profile("normal")
-    @PostMapping("/upload")
-    public void uploadCSV(@RequestParam("file")MultipartFile file) throws Exception {
+    @PostMapping(path = "/upload")
+    public ResponseEntity<String> uploadCSV(@RequestParam("file") MultipartFile file) throws Exception {
         pocasiService.dataUpload(file);
+        return file.isEmpty() ?
+                new ResponseEntity<String>(HttpStatus.NOT_FOUND) : new ResponseEntity<String>(HttpStatus.OK);
     }
 
 
