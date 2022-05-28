@@ -6,8 +6,11 @@ import com.example.semestralka.mesto.MestoRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest
+//@WebMvcTest
 class PocasiControllerTest {
 
     @Autowired
@@ -33,6 +37,7 @@ class PocasiControllerTest {
     private PocasiRepository helper;
     @Autowired
     private MestoRepository helper2;
+
 
     @AfterEach
     void tearDown()
