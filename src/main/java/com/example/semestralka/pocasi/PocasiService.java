@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.io.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -55,11 +56,11 @@ public class PocasiService {
         pocasiRepository.save(pocasi);
     }
 
-    public List<Pocasi> getCurrentPocasi()
+    public List<Show> getCurrentPocasi()
     {
         List<Mesto> ms = mestoRepository.findAll();
         List<Pocasi> ps;
-        List<Pocasi> r = new ArrayList<>();
+        List<Show> r = new ArrayList<>();
         Pocasi np = null;
         for(Mesto m : ms)
         {
@@ -74,17 +75,17 @@ public class PocasiService {
                     np =p;
                 }
             }
-            r.add(np);
+            r.add(new Show(np.getName(), Timestamp.valueOf(np.getTime()),np.getTemp(),np.getPres(), np.getState()));
         }
 
         return r;
     }
 
-    public List<Pocasi> getAVGofPocasi(Integer interval)
+    public List<Show> getAVGofPocasi(Integer interval)
     {
         List<Mesto> ms = mestoRepository.findAll();
         List<Pocasi> ps;
-        List<Pocasi> r = new ArrayList<>();
+        List<Show> r = new ArrayList<>();
         double sumT = 0;
         int ammountT = 0;
         int sumP = 0;
@@ -106,13 +107,13 @@ public class PocasiService {
             }
             Double temp = sumT/ammountT;
             Integer pres = sumP/ammountP;
-            r.add(new Pocasi(m.getName(),LocalDateTime.now(),temp,pres,m.getState()));
+            r.add(new Show(m.getName(),Timestamp.valueOf(LocalDateTime.now()),temp,pres,m.getState()));
         }
 
         return r;
     }
 
-    public Pocasi getPocasiInCity(String name, String tag)
+    public Show getPocasiInCity(String name, String tag)
     {
         List<Pocasi> ps = pocasiRepository.findPocasiByNameAndState(name,tag);
         if(ps.isEmpty())logger.error("get pocasi in city: lokalita nenalezena: "+ name+" "+ tag);
@@ -125,7 +126,7 @@ public class PocasiService {
                     np = p;
                 }
             }
-            return np;
+            return new Show(np.getName(),Timestamp.valueOf(np.getTime()),np.getTemp(),np.getPres(),np.getState());
         }
         return null;
     }

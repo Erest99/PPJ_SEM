@@ -42,19 +42,21 @@ public class PocasiController {
     }
 
     @GetMapping("/current_{mesto}_{tag}")
-    public Pocasi showCurrentPocasiFor(@PathVariable("mesto") String mesto,@PathVariable("tag") String tag)
+    public Show showCurrentPocasiFor(@PathVariable("mesto") String mesto,@PathVariable("tag") String tag)
     {
-        return pocasiService.getPocasiInCity(mesto,tag);
+        if(pocasiService.getPocasiInCity(mesto,tag) == null)
+        throw new ForbiddenException();
+        else return pocasiService.getPocasiInCity(mesto,tag);
     }
 
     @GetMapping("/current")
-    public List<Pocasi> showCurrentPocasi()
+    public List<Show> showCurrentPocasi()
     {
         return pocasiService.getCurrentPocasi();
     }
 
     @GetMapping("/avg_{interval}")
-    public List<Pocasi> showAvgPocasi(@PathVariable Integer interval)
+    public List<Show> showAvgPocasi(@PathVariable Integer interval)
     {
         return pocasiService.getAVGofPocasi(interval);
     }
@@ -62,16 +64,10 @@ public class PocasiController {
     @Profile("normal")
     @PostMapping
     public void savePocasi(@RequestBody Pocasi pocasi) {
-//        pocasi.setId(pocasiService.getSequenceNumber(SEQUENCE_NAME));
         pocasiService.addNewPocasi(pocasi);
 
     }
 
-
-//    @PostMapping("/upload")
-//    public void uploadCSV(@RequestParam("file")MultipartFile file) throws Exception {
-//        pocasiService.dataUpload(file);
-//    }
     @Profile("normal")
     @PostMapping(path = "/upload")
     public ResponseEntity<String> uploadCSV(@RequestParam("file") MultipartFile file) throws Exception {

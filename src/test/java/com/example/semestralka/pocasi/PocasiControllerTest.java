@@ -51,11 +51,14 @@ class PocasiControllerTest {
         Mesto mesto = new Mesto("Chomutov","CZ");
         helper2.save(mesto);
         LocalDateTime ld = LocalDateTime.now();
-        Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
-        helper.save(p);
+        Pocasi pocasi = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
+        helper.save(pocasi);
         Pocasi t =  helper.findAll().get(0);
-        Pocasi pocasi =  underTest.showCurrentPocasiFor(mesto.getName(), mesto.getState());
-        assertThat(pocasi).isEqualTo(t);
+        Show show =  underTest.showCurrentPocasiFor(mesto.getName(), mesto.getState());
+        assertThat(pocasi.getName()).isEqualTo(show.getName());
+        assertThat(pocasi.getTemp()-273.15).isEqualTo(show.getTemp());
+        assertThat(pocasi.getTime().getHour()).isEqualTo(show.getTime().toLocalDateTime().getHour());
+        assertThat(pocasi.getTime().getMinute()).isEqualTo(show.getTime().toLocalDateTime().getMinute());
     }
 
     @Test
@@ -66,8 +69,11 @@ class PocasiControllerTest {
         Pocasi p = new Pocasi("Chomutov",ld,290.0,1000,"CZ");
         helper.save(p);
         List<Pocasi> t =  helper.findAll();
-        List<Pocasi> pocasi =  underTest.showCurrentPocasi();
-        assertThat(pocasi).isEqualTo(t);
+        List<Show> shows =  underTest.showCurrentPocasi();
+        assertThat(t.get(0).getName()).isEqualTo(shows.get(0).getName());
+        assertThat(t.get(0).getTemp()-273.15).isEqualTo(shows.get(0).getTemp());
+        assertThat(t.get(0).getTime().getHour()).isEqualTo(shows.get(0).getTime().toLocalDateTime().getHour());
+        assertThat(t.get(0).getTime().getMinute()).isEqualTo(shows.get(0).getTime().toLocalDateTime().getMinute());
     }
 
     @Test
@@ -79,8 +85,11 @@ class PocasiControllerTest {
         helper.save(p);
         p = new Pocasi("Chomutov",ld,292.0,1000,"CZ");
         helper.save(p);
-        List<Pocasi> pocasi =  underTest.showAvgPocasi(1);
-        assertThat(pocasi.get(0).getTemp()).isEqualTo(291.0);
+        List<Show> shows =  underTest.showAvgPocasi(1);
+        assertThat(p.getName()).isEqualTo(shows.get(0).getName());
+        assertThat(291.0-273.15).isEqualTo(shows.get(0).getTemp());
+        assertThat(p.getTime().getHour()).isEqualTo(shows.get(0).getTime().toLocalDateTime().getHour());
+        assertThat(p.getTime().getMinute()).isEqualTo(shows.get(0).getTime().toLocalDateTime().getMinute());
     }
 
     @Test

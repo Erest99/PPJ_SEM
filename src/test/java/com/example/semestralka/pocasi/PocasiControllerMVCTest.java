@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.FileInputStream;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -78,8 +79,8 @@ class PocasiControllerMVCTest {
     @Test
     void showCurrentPocasiFor() throws Exception {
 
-        Pocasi p = new Pocasi("Chomutov",LocalDateTime.now(),290.0,1000,"CZ");
-        Mockito.when(service.getPocasiInCity("Chomutov","CZ")).thenReturn(p);
+        Show show = new Show("Chomutov", Timestamp.valueOf(LocalDateTime.now()),290.0,1000,"CZ");
+        Mockito.when(service.getPocasiInCity("Chomutov","CZ")).thenReturn(show);
         String url = "http://localhost:8080/api/v1/pocasi/current_Chomutov_CZ";
 
         MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -87,13 +88,27 @@ class PocasiControllerMVCTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JSR310Module());
         Pocasi pocasi = mapper.readValue(resp, Pocasi.class);
-        assertThat(pocasi).isEqualTo(p);
+        assertThat(pocasi.getName()).isEqualTo(show.getName());
+        assertThat(pocasi.getTemp()).isEqualTo(show.getTemp());
+        assertThat(pocasi.getTime().getHour()).isEqualTo(show.getTime().toLocalDateTime().minusHours(2).getHour());
+        assertThat(pocasi.getTime().getMinute()).isEqualTo(show.getTime().toLocalDateTime().getMinute());
+
+    }
+
+    @Test
+    void showCurrentPocasiForF() throws Exception {
+
+        Mockito.when(service.getPocasiInCity("Chomutov","SK")).thenReturn(null);
+        String url = "http://localhost:8080/api/v1/pocasi/current_Chomutov_SK";
+
+        MvcResult result = mvc.perform(get(url)).andExpect(status().isForbidden()).andReturn();
+
     }
 
     @Test
     void showCurrentPocasi() throws Exception {
-        List<Pocasi> ps = List.of(new Pocasi("Chomutov",LocalDateTime.now(),290.0,1000,"CZ"));
-        Mockito.when(service.getCurrentPocasi()).thenReturn(ps);
+        List<Show> shows = List.of(new Show("Chomutov", Timestamp.valueOf(LocalDateTime.now()),290.0,1000,"CZ"));
+        Mockito.when(service.getCurrentPocasi()).thenReturn(shows);
         String url = "http://localhost:8080/api/v1/pocasi/current";
 
         MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -101,16 +116,22 @@ class PocasiControllerMVCTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JSR310Module());
         List<Pocasi> pocasi =  mapper.readValue(resp, new TypeReference<List<Pocasi>>(){});
-        assertThat(pocasi).isEqualTo(ps);
+        Pocasi p = pocasi.get(0);
+        assertThat(p.getName()).isEqualTo(shows.get(0).getName());
+        assertThat(p.getTemp()).isEqualTo(shows.get(0).getTemp());
+        assertThat(p.getTime().getHour()).isEqualTo(shows.get(0).getTime().toLocalDateTime().minusHours(2).getHour());
+        assertThat(p.getTime().getMinute()).isEqualTo(shows.get(0).getTime().toLocalDateTime().getMinute());
 
 
 
     }
 
+
+
     @Test
     void showAvgPocasi() throws Exception {
-        List<Pocasi> ps = List.of(new Pocasi("Chomutov",LocalDateTime.now(),290.0,1000,"CZ"));
-        Mockito.when(service.getAVGofPocasi(1)).thenReturn(ps);
+        List<Show> shows = List.of(new Show("Chomutov", Timestamp.valueOf(LocalDateTime.now()),290.0,1000,"CZ"));
+        Mockito.when(service.getAVGofPocasi(1)).thenReturn(shows);
         String url = "http://localhost:8080/api/v1/pocasi/avg_1";
 
         MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -118,7 +139,11 @@ class PocasiControllerMVCTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JSR310Module());
         List<Pocasi> pocasi =  mapper.readValue(resp, new TypeReference<List<Pocasi>>(){});
-        assertThat(pocasi).isEqualTo(ps);
+        Pocasi p = pocasi.get(0);
+        assertThat(p.getName()).isEqualTo(shows.get(0).getName());
+        assertThat(p.getTemp()).isEqualTo(shows.get(0).getTemp());
+        assertThat(p.getTime().getHour()).isEqualTo(shows.get(0).getTime().toLocalDateTime().minusHours(2).getHour());
+        assertThat(p.getTime().getMinute()).isEqualTo(shows.get(0).getTime().toLocalDateTime().getMinute());
     }
 
     @Test
@@ -147,12 +172,22 @@ class PocasiControllerMVCTest {
     }
 
     @Test
+    void uploadCSVF() throws Exception {
+        String url = "http://localhost:8080/api/v1/pocasi/upload";
+        FileInputStream fis = new FileInputStream("src/test/java/com/example/semestralka/pocasi/testCSV.csv");
+        mvc.perform(multipart(url)).andExpect(status().isBadRequest());
+
+    }
+
+    @Test
     void getAllPocasiInCsv() throws Exception {
         String url = "http://localhost:8080/api/v1/pocasi/download";
         HttpServletResponse response = mock(HttpServletResponse.class);
         mvc.perform(post(url)).andExpect(status().isOk());
 
     }
+
+
 
 
     @Test
@@ -171,6 +206,20 @@ class PocasiControllerMVCTest {
     }
 
     @Test
+    void insertPocasiF() throws Exception {
+        String url = "http://localhost:8080/api/v1/pocasi/add";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JSR310Module());
+        mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
+        ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
+        String requestJson=ow.writeValueAsString(null);
+
+        mvc.perform(post(url).contentType(APPLICATION_JSON_UTF8)
+                .content(requestJson)).andExpect(status().isBadRequest()).andReturn();
+    }
+
+    @Test
     void deletePocasi() throws Exception {
         Pocasi p = new Pocasi("Chomutov",LocalDateTime.now(),290.0,1000,"CZ");
         String url = "http://localhost:8080/api/v1/pocasi/del";
@@ -186,6 +235,20 @@ class PocasiControllerMVCTest {
     }
 
     @Test
+    void deletePocasiF() throws Exception {
+        String url = "http://localhost:8080/api/v1/pocasi/del";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JSR310Module());
+        mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
+        ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
+        String requestJson=ow.writeValueAsString(null);
+
+        mvc.perform(delete(url).contentType(APPLICATION_JSON_UTF8)
+                .content(requestJson)).andExpect(status().isBadRequest()).andReturn();
+    }
+
+    @Test
     void updatePocasi() throws Exception {
         Pocasi p = new Pocasi("Chomutov",LocalDateTime.now(),290.0,1000,"CZ");
         String url = "http://localhost:8080/api/v1/pocasi/upd";
@@ -198,5 +261,19 @@ class PocasiControllerMVCTest {
 
         mvc.perform(put(url).contentType(APPLICATION_JSON_UTF8)
                 .content(requestJson).param("temp","290.0")).andExpect(status().isOk()).andReturn();
+    }
+
+    @Test
+    void updatePocasiF() throws Exception {
+        String url = "http://localhost:8080/api/v1/pocasi/upd";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JSR310Module());
+        mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
+        ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
+        String requestJson=ow.writeValueAsString(null);
+
+        mvc.perform(put(url).contentType(APPLICATION_JSON_UTF8)
+                .content(requestJson).param("temp","290.0")).andExpect(status().isBadRequest()).andReturn();
     }
 }
